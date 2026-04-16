@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d6efd">
+  <title>BT Voice Chat</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-muted: #6c757d;
+      --primary: #0d6efd;
+      --primary-hover: #0b5ed7;
+      --success: #198754;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --border: #dee2e6;
+      --meter-bg: #e9ecef;
+      --meter-fill: #0d6efd;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --radius: 12px;
+      --transition: 0.2s ease;
+    }
+    .dark {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --border: #334155;
+      --meter-bg: #334155;
+      --meter-fill: #3b82f6;
+      --shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      transition: background var(--transition), color var(--transition);
+    }
+    .app-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 { font-size: 1.4rem; font-weight: 700; }
+    .icon-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all var(--transition);
+    }
+    .icon-btn:hover { background: var(--border); }
+
+    .panel { margin-bottom: 16px; }
+    .panel-title { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      transition: all var(--transition);
+    }
+    button:hover:not(:disabled) { background: var(--primary-hover); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.secondary { background: var(--border); color: var(--text); }
+    button.secondary:hover:not(:disabled) { background: var(--text-muted); color: #fff; }
+    button.danger { background: var(--danger); }
+
+    .input-group { display: flex; gap: 8px; margin-bottom: 10px; }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    input[type="text"]:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+    .device-list {
+      max-height: 140px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 8px 0;
+      background: var(--bg);
+    }
+    .device-item {
+      width: 100%;
+      background: transparent;
+      color: var(--text);
+      text-align: left;
+      padding: 10px 12px;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      font-size: 0.9rem;
+    }
+    .device-item:last-child { border-bottom: none; }
+    .device-item:hover { background: var(--border); }
+    .device-item.active { background: var(--primary); color: #fff; }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .status-item { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background var(--transition); }
+    .dot.active { background: var(--success); }
+    .dot.warning { background: var(--warning); }
+    .dot.error { background: var(--danger); }
+
+    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .slider-wrap label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+    input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+    
+    .toggles { display: flex; justify-content: space-between; gap: 10px; margin: 12px 0; }
+    .toggle-label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+    input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+
+    .meter-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .meter { height: 6px; background: var(--meter-bg); border-radius: 3px; overflow: hidden; }
+    .meter-fill { height: 100%; width: 0%; background: var(--meter-fill); transition: width 0.05s linear; }
+    .meter-fill.clip { background: var(--danger); }
+
+    /* QR Code Styles */
+    .qr-wrap {
+      text-align: center;
+      margin: 12px 0;
+      padding: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .qr-wrap.visible { opacity: 1; transform: translateY(0); }
+    .qr-canvas-wrap {
+      display: inline-block;
+      padding: 8px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .qr-canvas-wrap canvas { display: block; border-radius: 4px; }
+    .qr-actions { margin-top: 10px; display: flex; justify-content: center; gap: 8px; }
+    .qr-actions button { width: auto; padding: 8px 14px; font-size: 0.8rem; }
+
+    .note { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; margin-top: 12px; padding: 8px; background: var(--bg); border-radius: 6px; }
+    .hidden { display: none; }
+
+    @media (max-width: 380px) {
+      .controls-grid { grid-template-columns: 1fr; }
+      .status-bar { flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>🎙️ BT Voice Chat</h1>
+      <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">🌙</button>
+    </header>
+
+    <section class="panel">
+      <div class="panel-title">🔊 Audio Output (Bluetooth)</div>
+      <button id="scan-devices" class="secondary">Scan Local Audio Devices</button>
+      <div id="device-list" class="device-list hidden">No outputs found.</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">🌐 Peer Connection</div>
+      <div class="input-group">
+        <input type="text" id="peer-id-input" placeholder="Enter Peer ID to call...">
+        <button id="connect-btn" style="width: auto; padding: 10px 16px;">Connect</button>
+      </div>
+      <div id="my-id-display" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Generating your ID...</div>
+      
+      <div id="qr-wrap" class="qr-wrap">
+        <div class="qr-canvas-wrap">
+          <canvas id="qr-code" width="180" height="180"></canvas>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin:8px 0 0;">Scan to auto-copy ID</p>
+        <div class="qr-actions">
+          <button id="copy-id-btn" class="secondary">📋 Copy ID</button>
+          <button id="share-id-btn" class="secondary">📤 Share</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="status-bar">
+      <div class="status-item"><span class="dot" id="dot-bt"></span> BT Output</div>
+      <div class="status-item"><span class="dot" id="dot-mic"></span> Mic</div>
+      <div class="status-item"><span class="dot" id="dot-peer"></span> Peer</div>
+      <div class="status-item"><span class="dot" id="dot-net"></span> Network</div>
+    </div>
+
+    <section class="panel">
+      <div class="panel-title">🎛️ Audio Controls</div>
+      <div class="controls-grid">
+        <button id="start-mic" disabled>Start Mic</button>
+        <button id="end-call" class="danger" disabled>End Call</button>
+      </div>
+      <div class="controls-grid">
+        <button id="mute-btn" disabled>Mute</button>
+        <div class="slider-wrap">
+          <label>Output Volume</label>
+          <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.8">
+        </div>
+        <div class="slider-wrap">
+          <label>Input Gain</label>
+          <input type="range" id="gain-slider" min="0" max="2" step="0.05" value="1">
+        </div>
+      </div>
+      <div class="toggles">
+        <label class="toggle-label"><input type="checkbox" id="echo-toggle" checked> Echo Cancel</label>
+        <label class="toggle-label"><input type="checkbox" id="noise-toggle" checked> Noise Suppress</label>
+      </div>
+    </section>
+
+    <div class="meter-wrap">
+      <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-muted);"><span>Local</span><span>Remote</span></div>
+      <div class="meter"><div id="meter-local" class="meter-fill"></div></div>
+      <div class="meter"><div id="meter-remote" class="meter-fill"></div></div>
+    </div>
+
+    <p class="note">⚠️ Requires HTTPS/localhost. Use Chrome/Edge for `setSinkId()`. Safari/Firefox route to system default. Keep mic & output separated to avoid feedback.</p>
+  </div>
+
+  <audio id="remote-audio" autoplay playsinline></audio>
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+
+  <script>
+    // ================= STATE & DOM =================
+    const state = {
+      audioCtx: null,
+      localStream: null,
+      remoteStream: null,
+      processedStream: null,
+      peer: null,
+      currentCall: null,
+      inputGain: null,
+      localAnalyser: null,
+      remoteAnalyser: null,
+      sinkId: null,
+      isMuted: false,
+      isMicActive: false,
+      isCallActive: false,
+      peerId: null
+    };
+
+    const dom = {
+      themeToggle: document.getElementById('theme-toggle'),
+      scanBtn: document.getElementById('scan-devices'),
+      deviceList: document.getElementById('device-list'),
+      peerInput: document.getElementById('peer-id-input'),
+      connectBtn: document.getElementById('connect-btn'),
+      myIdDisplay: document.getElementById('my-id-display'),
+      qrWrap: document.getElementById('qr-wrap'),
+      qrCanvas: document.getElementById('qr-code'),
+      copyBtn: document.getElementById('copy-id-btn'),
+      shareBtn: document.getElementById('share-id-btn'),
+      dotBt: document.getElementById('dot-bt'),
+      dotMic: document.getElementById('dot-mic'),
+      dotPeer: document.getElementById('dot-peer'),
+      dotNet: document.getElementById('dot-net'),
+      startBtn: document.getElementById('start-mic'),
+      endBtn: document.getElementById('end-call'),
+      muteBtn: document.getElementById('mute-btn'),
+      volSlider: document.getElementById('vol-slider'),
+      gainSlider: document.getElementById('gain-slider'),
+      echoToggle: document.getElementById('echo-toggle'),
+      noiseToggle: document.getElementById('noise-toggle'),
+      meterLocal: document.getElementById('meter-local'),
+      meterRemote: document.getElementById('meter-remote'),
+      remoteAudio: document.getElementById('remote-audio')
+    };
+
+    // ================= THEME =================
+    const applyTheme = (dark) => {
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      dom.themeToggle.textContent = dark ? '☀️' : '🌙';
+    };
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) applyTheme(savedTheme === 'dark');
+    else applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    dom.themeToggle.onclick = () => applyTheme(!document.documentElement.classList.contains('dark'));
+
+    // ================= STATUS INDICATORS =================
+    const setStatus = (dotEl, status) => {
+      dotEl.className = 'dot';
+      if (status === 'active') dotEl.classList.add('active');
+      else if (status === 'warning') dotEl.classList.add('warning');
+      else if (status === 'error') dotEl.classList.add('error');
+    };
+    const updateStatuses = () => {
+      setStatus(dom.dotBt, state.sinkId ? 'active' : 'warning');
+      setStatus(dom.dotMic, state.isMicActive ? 'active' : '');
+      setStatus(dom.dotPeer, state.isCallActive ? 'active' : '');
+      setStatus(dom.dotNet, state.peer && state.peer.open ? 'active' : 'warning');
+    };
+
+    // ================= BLUETOOTH / OUTPUT ROUTING =================
+    const isSetSinkIdSupported = 'setSinkId' in HTMLAudioElement.prototype;
+    
+    dom.scanBtn.onclick = async () => {
+      if (!isSetSinkIdSupported) {
+        dom.deviceList.innerHTML = '<p style="padding:12px;text-align:center;color:var(--text-muted);">`setSinkId()` not supported. Audio will use system default Bluetooth device.</p>';
+        dom.deviceList.classList.remove('hidden');
+        setStatus(dom.dotBt, 'warning');
+        return;
+      }
+      dom.deviceList.innerHTML = '<p style="padding:12px;text-align:center;">Scanning outputs...</p>';
+      dom.deviceList.classList.remove('hidden');
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const outputs = devices.filter(d => d.kind === 'audiooutput');
+        dom.deviceList.innerHTML = '';
+        if (!outputs.length) throw new Error('No audio outputs found.');
+        
+        outputs.forEach((dev, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'device-item';
+          btn.textContent = dev.label || `Output Device ${i+1}`;
+          btn.onclick = () => selectOutput(dev.deviceId, btn);
+          dom.deviceList.appendChild(btn);
+        });
+        
+        const last = localStorage.getItem('lastSinkId');
+        if (last) {
+          const btns = [...dom.deviceList.children];
+          const lastBtn = btns.find(b => b.dataset.id === last || b.textContent.includes(last.slice(0,8)));
+          if (lastBtn) lastBtn.click();
+        }
+      } catch (err) {
+        dom.deviceList.innerHTML = `<p style="padding:12px;text-align:center;color:var(--danger);">${err.message}</p>`;
+      }
+    };
+
+    const selectOutput = (id, btnEl) => {
+      state.sinkId = id;
+      localStorage.setItem('lastSinkId', id);
+      document.querySelectorAll('.device-item').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      setStatus(dom.dotBt, 'active');
+      if (dom.remoteAudio.srcObject) dom.remoteAudio.setSinkId(id).catch(console.warn);
+    };
+
+    // ================= WEB AUDIO & MIC =================
+    const initAudioGraph = async () => {
+      state.audioCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+      state.localStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: { ideal: dom.echoToggle.checked },
+          noiseSuppression: { ideal: dom.noiseToggle.checked },
+          autoGainControl: { ideal: true },
+          channelCount: 1
+        }
+      });
+
+      state.inputGain = state.audioCtx.createGain();
+      state.localAnalyser = state.audioCtx.createAnalyser();
+      state.localAnalyser.fftSize = 256;
+      const dest = state.audioCtx.createMediaStreamDestination();
+
+      const source = state.audioCtx.createMediaStreamSource(state.localStream);
+      source.connect(state.inputGain);
+      state.inputGain.connect(state.localAnalyser);
+      state.localAnalyser.connect(dest);
+      state.processedStream = dest.stream;
+
+      state.inputGain.gain.value = parseFloat(dom.gainSlider.value);
+      state.isMicActive = true;
+      updateStatuses();
+      startMetering();
+    };
+
+    const stopAudio = () => {
+      if (state.localStream) state.localStream.getTracks().forEach(t => t.stop());
+      if (state.audioCtx) state.audioCtx.close();
+      state.localStream = null;
+      state.audioCtx = null;
+      state.processedStream = null;
+      state.isMicActive = false;
+      updateStatuses();
+      cancelAnimationFrame(window.meterFrame);
+      dom.meterLocal.style.width = '0%';
+    };
+
+    // ================= WEBRTC / PEERJS =================
+    const initPeer = () => {
+      state.peer = new Peer({ debug: 1, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
+      
+      state.peer.on('open', id => {
+        state.peerId = id;
+        dom.myIdDisplay.innerHTML = `Your ID: <strong style="color:var(--primary);user-select:all;">${id}</strong>`;
+        generateQR(id);
+        updateStatuses();
+      });
+      state.peer.on('error', err => {
+        console.error('Peer Error:', err);
+        dom.myIdDisplay.textContent = `Error: ${err.type}`;
+        setStatus(dom.dotPeer, 'error');
+      });
+      state.peer.on('call', call => {
+        call.answer(state.processedStream || null);
+        handleCall(call);
+      });
+    };
+
+    const generateQR = (text) => {
+      if (!window.QRCode) {
+        console.warn('QR library not loaded');
+        return;
+      }
+      try {
+        QRCode.toCanvas(dom.qrCanvas, text, {
+          width: 160,
+          margin: 2,
+          color: { dark: '#000000', light: '#ffffff' }
+        }, err => {
+          if (err) console.error('QR gen error:', err);
+          else {
+            dom.qrWrap.classList.add('visible');
+          }
+        });
+      } catch (e) { console.error(e); }
+    };
+
+    dom.copyBtn.onclick = async () => {
+      if (!state.peerId) return;
+      try {
+        await navigator.clipboard.writeText(state.peerId);
+        dom.copyBtn.textContent = '✅ Copied!';
+        setTimeout(() => dom.copyBtn.textContent = '📋 Copy ID', 2000);
+      } catch {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = state.peerId;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        dom.copyBtn.textContent = '✅ Copied!';
+        setTimeout(() => dom.copyBtn.textContent = '📋 Copy ID', 2000);
+      }
+    };
+
+    dom.shareBtn.onclick = () => {
+      if (!state.peerId) return;
+      if (navigator.share) {
+        navigator.share({ title: 'BT Voice Chat ID', text: `Join my voice chat! Copy this ID: ${state.peerId}` }).catch(() => {});
+      } else {
+        dom.copyBtn.click();
+      }
+    };
+
+    dom.connectBtn.onclick = async () => {
+      const remoteId = dom.peerInput.value.trim();
+      if (!remoteId) return alert('Enter a valid Peer ID.');
+      if (!state.processedStream) { await initAudioGraph(); }
+      
+      dom.connectBtn.disabled = true;
+      dom.connectBtn.textContent = 'Calling...';
+      try {
+        const call = state.peer.call(remoteId, state.processedStream);
+        handleCall(call);
+      } catch (err) {
+        alert(`Call failed: ${err.message}`);
+        dom.connectBtn.disabled = false;
+        dom.connectBtn.textContent = 'Connect';
+      }
+    };
+
+    const handleCall = (call) => {
+      state.currentCall = call;
+      call.on('stream', remoteStream => {
+        state.remoteStream = remoteStream;
+        dom.remoteAudio.srcObject = remoteStream;
+        if (state.sinkId) dom.remoteAudio.setSinkId(state.sinkId).catch(console.warn);
+        
+        state.remoteAnalyser = state.audioCtx.createAnalyser();
+        state.remoteAnalyser.fftSize = 256;
+        const remoteSource = state.audioCtx.createMediaStreamSource(remoteStream.clone());
+        remoteSource.connect(state.remoteAnalyser);
+        
+        state.isCallActive = true;
+        updateStatuses();
+        dom.startBtn.disabled = true;
+        dom.endBtn.disabled = false;
+        dom.muteBtn.disabled = false;
+        dom.myIdDisplay.textContent = '🟢 Call active. Speaking...';
+      });
+      call.on('close', () => endCall());
+      call.on('error', err => { console.error('Call Error:', err); endCall(); });
+    };
+
+    const endCall = () => {
+      if (state.currentCall) state.currentCall.close();
+      state.remoteStream = null;
+      dom.remoteAudio.srcObject = null;
+      state.currentCall = null;
+      state.isCallActive = false;
+      updateStatuses();
+      dom.connectBtn.disabled = false;
+      dom.connectBtn.textContent = 'Connect';
+      dom.startBtn.disabled = false;
+      dom.endBtn.disabled = true;
+      dom.muteBtn.disabled = true;
+      dom.muteBtn.textContent = 'Mute';
+      dom.meterRemote.style.width = '0%';
+    };
+
+    // ================= CONTROLS & METERS =================
+    dom.startBtn.onclick = async () => {
+      try {
+        if (!state.audioCtx) await initAudioGraph();
+        else await state.audioCtx.resume();
+        dom.startBtn.disabled = true;
+        dom.endBtn.disabled = false;
+        dom.muteBtn.disabled = false;
+        state.isMicActive = true;
+        updateStatuses();
+        startMetering();
+      } catch (err) {
+        alert(`Mic Error: ${err.message}`);
+      }
+    };
+
+    dom.endBtn.onclick = endCall;
+    
+    dom.muteBtn.onclick = () => {
+      state.isMuted = !state.isMuted;
+      if (state.inputGain) state.inputGain.gain.value = state.isMuted ? 0 : parseFloat(dom.gainSlider.value);
+      dom.muteBtn.textContent = state.isMuted ? 'Unmute' : 'Mute';
+      dom.muteBtn.classList.toggle('secondary', state.isMuted);
+    };
+
+    dom.gainSlider.oninput = () => {
+      if (state.inputGain && !state.isMuted) state.inputGain.gain.value = parseFloat(dom.gainSlider.value);
+    };
+    dom.volSlider.oninput = () => {
+      dom.remoteAudio.volume = parseFloat(dom.volSlider.value);
+    };
+
+    [dom.echoToggle, dom.noiseToggle].forEach(el => {
+      el.onchange = () => {
+        if (!state.localStream) return;
+        const track = state.localStream.getAudioTracks()[0];
+        track.applyConstraints({
+          advanced: [{
+            echoCancellation: { ideal: dom.echoToggle.checked },
+            noiseSuppression: { ideal: dom.noiseToggle.checked }
+          }]
+        }).catch(console.warn);
+      };
+    });
+
+    const startMetering = () => {
+      const update = () => {
+        if (!state.localAnalyser || !state.remoteAnalyser) return;
+        
+        const getLevel = (analyser) => {
+          const data = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteFrequencyData(data);
+          const avg = data.reduce((a,b)=>a+b, 0) / data.length;
+          return Math.min(100, (avg / 255) * 100 * 1.5);
+        };
+
+        const lPct = getLevel(state.localAnalyser);
+        const rPct = getLevel(state.remoteAnalyser);
+        
+        dom.meterLocal.style.width = `${lPct}%`;
+        dom.meterLocal.classList.toggle('clip', lPct > 85);
+        dom.meterRemote.style.width = `${rPct}%`;
+        dom.meterRemote.classList.toggle('clip', rPct > 85);
+        
+        window.meterFrame = requestAnimationFrame(update);
+      };
+      cancelAnimationFrame(window.meterFrame);
+      update();
+    };
+
+    // ================= INIT =================
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Web Audio/MediaDevices not supported. Please use a modern browser.');
+    }
+    if (!window.Peer) {
+      alert('PeerJS CDN failed to load. Check internet connection.');
+    }
+    initPeer();
+    updateStatuses();
+  </script>
+</body>
+</html>
