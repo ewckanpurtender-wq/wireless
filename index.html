@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML to CSS/JS/HTML Converter</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- JSZip for client-side ZIP generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+  <main class="container">
+    <h1>HTML File Separator & ZIP Exporter</h1>
+    <p class="subtitle">Upload an HTML file to extract inline CSS & JS into separate files.</p>
+    
+    <div id="drop-zone" class="drop-zone">
+      <div class="drop-icon">📁</div>
+      <p>Drag & drop your HTML file here</p>
+      <p class="or-text">or</p>
+      <label for="file-input" class="file-label">Browse Files</label>
+      <input type="file" id="file-input" accept=".html,.htm" hidden>
+    </div>
+
+    <div id="file-info" class="file-info hidden">
+      <span id="file-name"></span>
+      <button id="clear-btn" class="btn btn-secondary">Clear</button>
+    </div>
+
+    <button id="convert-btn" class="btn btn-primary" disabled>Convert & Download ZIP</button>
+
+    <div id="status" class="status hidden"></div>
+
+    <div id="preview-container" class="preview-container hidden">
+      <h3>Preview</h3>
+      <iframe id="preview-frame" sandbox="allow-same-origin allow-scripts allow-modals"></iframe>
+    </div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
