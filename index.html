@@ -1,40 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HTML to CSS/JS/HTML Converter</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- JSZip for client-side ZIP generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-</head>
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>BT Voice Link &amp; Remote</title>
+  
+<link rel="stylesheet" href="style.css" /></head>
 <body>
-  <main class="container">
-    <h1>HTML File Separator & ZIP Exporter</h1>
-    <p class="subtitle">Upload an HTML file to extract inline CSS & JS into separate files.</p>
-    
-    <div id="drop-zone" class="drop-zone">
-      <div class="drop-icon">📁</div>
-      <p>Drag & drop your HTML file here</p>
-      <p class="or-text">or</p>
-      <label for="file-input" class="file-label">Browse Files</label>
-      <input type="file" id="file-input" accept=".html,.htm" hidden>
+  <div class="app">
+    <header><h1>📡 BT Voice &amp; Remote</h1></header>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="voice">🗣️ Voice Link</button>
+      <button class="tab" data-tab="remote">🎛️ BT Remote</button>
     </div>
 
-    <div id="file-info" class="file-info hidden">
-      <span id="file-name"></span>
-      <button id="clear-btn" class="btn btn-secondary">Clear</button>
+    <!-- VOICE PANEL -->
+    <div id="voicePanel" class="panel active">
+      <div class="room-input">
+        <input type="text" id="roomCode" placeholder="Room Code" maxlength="4" />
+        <button id="joinRoomBtn">JOIN</button>
+      </div>
+      <div class="steps">
+        <div id="dot1" class="step-dot">1</div>
+        <div id="dot2" class="step-dot">2</div>
+        <div id="dot3" class="step-dot">3</div>
+      </div>
+      <div class="status-panel">
+        <div class="led-box"><div id="connLed" class="led yellow"></div><span id="connText">Disconnected</span></div>
+        <div class="led-box"><div id="modeLed" class="led off"></div><span id="modeText">Select Mode</span></div>
+      </div>
+      <div class="controls">
+        <button id="pairBtn" class="btn primary" disabled="">🔍 Scan &amp; Pair</button>
+        <div class="mode-row">
+          <button id="txBtn" class="btn mode" disabled="">📡 Transmitter</button>
+          <button id="rxBtn" class="btn mode" disabled="">📥 Receiver</button>
+        </div>
+        <button id="talkBtn" class="btn action" disabled="">▶️ START TALK</button>
+      </div>
+      <div class="audio-status">
+        <div class="status-item">🎙️ Mic: <span id="micState" class="off">OFF</span></div>
+        <div class="status-item">🔊 Speaker: <span id="spkState" class="off">OFF</span></div>
+      </div>
     </div>
 
-    <button id="convert-btn" class="btn btn-primary" disabled>Convert & Download ZIP</button>
-
-    <div id="status" class="status hidden"></div>
-
-    <div id="preview-container" class="preview-container hidden">
-      <h3>Preview</h3>
-      <iframe id="preview-frame" sandbox="allow-same-origin allow-scripts allow-modals"></iframe>
+    <!-- REMOTE PANEL -->
+    <div id="remotePanel" class="panel">
+      <div style="text-align:center; margin-bottom:14px;">
+        <button id="remoteConnectBtn" class="btn primary" style="width:100%">🔍 Search &amp; Connect Remote</button>
+      </div>
+      <div class="status-panel">
+        <div class="led-box"><div id="remoteLed" class="led yellow"></div><span id="remoteText">Remote Disconnected</span></div>
+      </div>
+      <div class="remote-grid">
+        <button class="remote-btn lock" id="remoteLockBtn" disabled="">🔒<span>LOCK</span></button>
+        <button class="remote-btn vol" id="remoteVolUpBtn" disabled="">🔊<span>VOL UP</span></button>
+        <button class="remote-btn vol" id="remoteVolDnBtn" disabled="">🔉<span>VOL DOWN</span></button>
+        <button class="remote-btn mic" id="remoteMicBtn" disabled="">🎙️<span>ACTIVE MIC</span></button>
+      </div>
     </div>
-  </main>
-  <script src="script.js"></script>
-</body>
-</html>
+
+    <footer>
+      ⚠️ Requires HTTPS. Open in Chrome. Pre-paired BT auto-detects.<br />
+      Remote commands route via WebSocket for instant sync.
+    </footer>
+  </div>
+
+  <audio id="remoteAudio" autoplay="" playsinline=""></audio>
+
+  
+
+<script src="script.js"></script></body></html>
